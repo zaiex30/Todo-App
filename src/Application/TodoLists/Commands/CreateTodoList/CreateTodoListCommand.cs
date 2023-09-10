@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Todo_App.Application.Common.Interfaces;
+using Todo_App.Domain.Common;
 using Todo_App.Domain.Entities;
 
 namespace Todo_App.Application.TodoLists.Commands.CreateTodoList;
@@ -7,6 +8,7 @@ namespace Todo_App.Application.TodoLists.Commands.CreateTodoList;
 public record CreateTodoListCommand : IRequest<int>
 {
     public string? Title { get; init; }
+    public string? ForDeletion { get; init; }
 }
 
 public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListCommand, int>
@@ -23,6 +25,7 @@ public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListComman
         var entity = new TodoList();
 
         entity.Title = request.Title;
+        entity.ForDeletion = request.ForDeletion;
 
         _context.TodoLists.Add(entity);
 

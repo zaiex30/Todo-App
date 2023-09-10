@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Todo_App.Domain.Common;
 using Todo_App.Domain.Entities;
 using Todo_App.Infrastructure.Identity;
 
@@ -76,12 +77,39 @@ public class ApplicationDbContextInitialiser
             _context.TodoLists.Add(new TodoList
             {
                 Title = "Todo List",
+                ForDeletion = Status.No,
                 Items =
                 {
-                    new TodoItem { Title = "Make a todo list 📃" },
-                    new TodoItem { Title = "Check off the first item ✅" },
-                    new TodoItem { Title = "Realise you've already done two things on the list! 🤯"},
-                    new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
+                    new TodoItem { Title = "Make a todo list 📃", ForDeletion = Status.No },
+                    new TodoItem { Title = "Check off the first item ✅", ForDeletion = Status.No },
+                    new TodoItem { Title = "Realise you've already done two things on the list! 🤯", ForDeletion = Status.Yes },
+                    new TodoItem { Title = "Reward yourself with a nice, long nap 🏆", ForDeletion = Status.No },
+                }
+            });
+
+            _context.TodoLists.Add(new TodoList
+            {
+                Title = "Todo List Two",
+                ForDeletion = Status.Yes,
+                Items =
+                {
+                    new TodoItem { Title = "Get groceries", ForDeletion = Status.Yes },
+                    new TodoItem { Title = "Buy new furnitures", ForDeletion = Status.No },
+                    new TodoItem { Title = "Feed the baby", ForDeletion = Status.Yes },
+                    new TodoItem { Title = "Go to sleep", ForDeletion = Status.NA },
+                }
+            });
+
+            _context.TodoLists.Add(new TodoList
+            {
+                Title = "Todo List Three",
+                ForDeletion = Status.No,
+                Items =
+                {
+                    new TodoItem { Title = "Make a new hit single", ForDeletion = Status.No },
+                    new TodoItem { Title = "Interview Taylor Swift", ForDeletion = Status.No },
+                    new TodoItem { Title = "Eat some grilled cheese sandwich", ForDeletion = Status.Yes },
+                    new TodoItem { Title = "Sing Let it Go", ForDeletion = Status.NA },
                 }
             });
 

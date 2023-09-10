@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Todo_App.Application.Common.Interfaces;
+using Todo_App.Domain.Common;
 
 namespace Todo_App.Application.TodoLists.Queries.ExportTodos;
 
@@ -27,7 +28,9 @@ public class ExportTodosQueryHandler : IRequestHandler<ExportTodosQuery, ExportT
     public async Task<ExportTodosVm> Handle(ExportTodosQuery request, CancellationToken cancellationToken)
     {
         var records = await _context.TodoItems
-                .Where(t => t.ListId == request.ListId)
+                .Where(t => 
+                    t.ListId == request.ListId &&
+                    t.ForDeletion == Status.No)
                 .ProjectTo<TodoItemRecord>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
 

@@ -3,6 +3,7 @@
 public class TodoList : BaseAuditableEntity
 {
     public string? Title { get; set; }
+    public string? ForDeletion { get; set; }
 
     public Colour Colour { get; set; } = Colour.White;
 
