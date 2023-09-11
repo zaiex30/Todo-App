@@ -32,8 +32,10 @@ export class TodoComponent implements OnInit {
     id: [null],
     listId: [null],
     priority: [''],
+    backgroundColor: "",
     note: ['']
   });
+  bgColor: string = "#FFFFFF";
 
 
   constructor(
@@ -47,6 +49,7 @@ export class TodoComponent implements OnInit {
     this.listsClient.get().subscribe(
       result => {
         this.lists = result.lists;
+        console.log("Got lists", this.lists);
         this.priorityLevels = result.priorityLevels;
         if (this.lists.length) {
           this.selectedList = this.lists[0];
@@ -138,6 +141,7 @@ export class TodoComponent implements OnInit {
   // Items
   showItemDetailsModal(template: TemplateRef<any>, item: TodoItemDto): void {
     this.selectedItem = item;
+    this.bgColor = this.selectedItem.backgroundColor;
     this.itemDetailsFormGroup.patchValue(this.selectedItem);
 
     this.itemDetailsModalRef = this.modalService.show(template);
@@ -148,6 +152,7 @@ export class TodoComponent implements OnInit {
 
   updateItemDetails(): void {
     const item = new UpdateTodoItemDetailCommand(this.itemDetailsFormGroup.value);
+    item.backgroundColor = this.bgColor;
     this.itemsClient.updateItemDetails(this.selectedItem.id, item).subscribe(
       () => {
         if (this.selectedItem.listId !== item.listId) {
@@ -163,11 +168,16 @@ export class TodoComponent implements OnInit {
 
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
+        this.selectedItem.backgroundColor = this.bgColor;
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
       },
       error => console.error(error)
     );
+  }
+
+  changeItemBackgroundColor($event){
+    this.bgColor = $event;
   }
 
   addItem() {
@@ -176,7 +186,8 @@ export class TodoComponent implements OnInit {
       listId: this.selectedList.id,
       priority: this.priorityLevels[0].value,
       title: '',
-      done: false
+      done: false,
+      backgroundColor: "#FFFFFF"
     } as TodoItemDto;
 
     this.selectedList.items.push(item);
