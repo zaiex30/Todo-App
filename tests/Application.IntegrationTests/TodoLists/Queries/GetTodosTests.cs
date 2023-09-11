@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using NUnit.Framework;
 using Todo_App.Application.TodoLists.Queries.GetTodos;
-using Todo_App.Domain.Common;
 using Todo_App.Domain.Entities;
 using Todo_App.Domain.ValueObjects;
 

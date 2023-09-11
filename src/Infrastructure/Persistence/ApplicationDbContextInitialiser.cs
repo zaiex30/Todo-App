@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Todo_App.Domain.Common;
 using Todo_App.Domain.Entities;
+using Todo_App.Domain.ValueObjects;
 using Todo_App.Infrastructure.Identity;
 
 namespace Todo_App.Infrastructure.Persistence;

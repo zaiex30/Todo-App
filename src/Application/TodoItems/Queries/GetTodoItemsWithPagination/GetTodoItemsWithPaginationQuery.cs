@@ -4,7 +4,7 @@ using MediatR;
 using Todo_App.Application.Common.Interfaces;
 using Todo_App.Application.Common.Mappings;
 using Todo_App.Application.Common.Models;
-using Todo_App.Domain.Common;
+using Todo_App.Domain.ValueObjects;
 
 namespace Todo_App.Application.TodoItems.Queries.GetTodoItemsWithPagination;
 

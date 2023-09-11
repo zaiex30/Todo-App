@@ -4,8 +4,8 @@ using Todo_App.Application.Common.Exceptions;
 using Todo_App.Application.TodoLists.Commands.CreateTodoList;
 using Todo_App.Application.TodoLists.Commands.DeleteTodoList;
 using Todo_App.Application.TodoLists.Commands.UpdateTodoList;
-using Todo_App.Domain.Common;
 using Todo_App.Domain.Entities;
+using Todo_App.Domain.ValueObjects;
 
 namespace Todo_App.Application.IntegrationTests.TodoLists.Commands;
 
