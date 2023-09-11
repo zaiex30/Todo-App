@@ -5,6 +5,7 @@ using Todo_App.Application.TodoItems.Commands.CreateTodoItem;
 using Todo_App.Application.TodoItems.Commands.UpdateTodoItem;
 using Todo_App.Application.TodoLists.Commands.CreateTodoList;
 using Todo_App.Domain.Entities;
+using Todo_App.Domain.ValueObjects;
 
 namespace Todo_App.Application.IntegrationTests.TodoItems.Commands;
 
@@ -47,6 +48,7 @@ public class UpdateTodoItemTests : BaseTestFixture
 
         item.Should().NotBeNull();
         item!.Title.Should().Be(command.Title);
+        item.BackgroundColor.Should().Be(Colour.White);
         item.LastModifiedBy.Should().NotBeNull();
         item.LastModifiedBy.Should().Be(userId);
         item.LastModified.Should().NotBeNull();

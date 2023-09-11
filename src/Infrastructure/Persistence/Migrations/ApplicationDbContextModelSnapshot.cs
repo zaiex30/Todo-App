@@ -58,6 +58,9 @@ namespace Todo_App.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("Reminder")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("BackgroundColor")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
