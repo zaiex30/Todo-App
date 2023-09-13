@@ -3,7 +3,9 @@ using NUnit.Framework;
 using Todo_App.Application.Common.Exceptions;
 using Todo_App.Application.TodoLists.Commands.CreateTodoList;
 using Todo_App.Application.TodoLists.Commands.DeleteTodoList;
+using Todo_App.Application.TodoLists.Commands.UpdateTodoList;
 using Todo_App.Domain.Entities;
+using Todo_App.Domain.ValueObjects;
 
 namespace Todo_App.Application.IntegrationTests.TodoLists.Commands;
 
@@ -23,7 +25,8 @@ public class DeleteTodoListTests : BaseTestFixture
     {
         var listId = await SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Title = "New List",
+            ForDeletion = Status.NA
         });
 
         await SendAsync(new DeleteTodoListCommand(listId));
@@ -31,5 +34,30 @@ public class DeleteTodoListTests : BaseTestFixture
         var list = await FindAsync<TodoList>(listId);
 
         list.Should().BeNull();
+    }
+
+    [Test]
+    public async Task ShouldSoftDeleteTodoList()
+    {
+        var listId = await SendAsync(new CreateTodoListCommand
+        {
+            Title = "New List",
+            ForDeletion = Status.No
+        });
+
+        var command = new UpdateTodoListCommand
+        {
+            Id = listId,
+            Title = "Updated Item Title",
+            ForDeletion = Status.Yes
+        };
+
+        await SendAsync(command);
+
+        var list = await FindAsync<TodoList>(listId);
+
+        list.Should().NotBeNull();
+
+        list!.ForDeletion.Should().Be(Status.Yes);
     }
 }

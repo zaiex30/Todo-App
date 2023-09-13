@@ -7,6 +7,7 @@ using Todo_App.Application.TodoItems.Commands.UpdateTodoItemDetail;
 using Todo_App.Application.TodoLists.Commands.CreateTodoList;
 using Todo_App.Domain.Entities;
 using Todo_App.Domain.Enums;
+using Todo_App.Domain.ValueObjects;
 
 namespace Todo_App.Application.IntegrationTests.TodoItems.Commands;
 
@@ -28,13 +29,15 @@ public class UpdateTodoItemDetailTests : BaseTestFixture
 
         var listId = await SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Title = "New List",
+            ForDeletion = Status.No
         });
 
         var itemId = await SendAsync(new CreateTodoItemCommand
         {
             ListId = listId,
-            Title = "New Item"
+            Title = "New Item",
+            ForDeletion = Status.No
         });
 
         var command = new UpdateTodoItemDetailCommand
@@ -42,7 +45,8 @@ public class UpdateTodoItemDetailTests : BaseTestFixture
             Id = itemId,
             ListId = listId,
             Note = "A1",
-            Priority = PriorityLevel.High
+            Priority = PriorityLevel.High,
+            ForDeletion = Status.No
         };
 
         await SendAsync(command);
@@ -51,6 +55,7 @@ public class UpdateTodoItemDetailTests : BaseTestFixture
 
         item.Should().NotBeNull();
         item!.ListId.Should().Be(command.ListId);
+        item!.ForDeletion.Should().Be(Status.No);
         item.Note.Should().Be(command.Note);
         item.Priority.Should().Be(command.Priority);
         item.LastModifiedBy.Should().NotBeNull();

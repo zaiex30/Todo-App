@@ -4,6 +4,7 @@ using MediatR;
 using Todo_App.Application.Common.Interfaces;
 using Todo_App.Application.Common.Mappings;
 using Todo_App.Application.Common.Models;
+using Todo_App.Domain.ValueObjects;
 
 namespace Todo_App.Application.TodoItems.Queries.GetTodoItemsWithPagination;
 
@@ -27,10 +28,14 @@ public class GetTodoItemsWithPaginationQueryHandler : IRequestHandler<GetTodoIte
 
     public async Task<PaginatedList<TodoItemBriefDto>> Handle(GetTodoItemsWithPaginationQuery request, CancellationToken cancellationToken)
     {
-        return await _context.TodoItems
-            .Where(x => x.ListId == request.ListId)
+        var paginatedList = await _context.TodoItems
+            .Where(x =>
+                x.ListId == request.ListId &&
+                x.ForDeletion == Status.No)
             .OrderBy(x => x.Title)
             .ProjectTo<TodoItemBriefDto>(_mapper.ConfigurationProvider)
             .PaginatedListAsync(request.PageNumber, request.PageSize);
+
+        return paginatedList;
     }
 }

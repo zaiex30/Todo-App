@@ -4,6 +4,7 @@ using Todo_App.Application.Common.Exceptions;
 using Todo_App.Application.TodoLists.Commands.CreateTodoList;
 using Todo_App.Application.TodoLists.Commands.UpdateTodoList;
 using Todo_App.Domain.Entities;
+using Todo_App.Domain.ValueObjects;
 
 namespace Todo_App.Application.IntegrationTests.TodoLists.Commands;
 
@@ -23,18 +24,21 @@ public class UpdateTodoListTests : BaseTestFixture
     {
         var listId = await SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Title = "New List",
+            ForDeletion = Status.No
         });
 
         await SendAsync(new CreateTodoListCommand
         {
-            Title = "Other List"
+            Title = "Other List",
+            ForDeletion = Status.No
         });
 
         var command = new UpdateTodoListCommand
         {
             Id = listId,
-            Title = "Other List"
+            Title = "Other List",
+            ForDeletion = Status.No
         };
 
         (await FluentActions.Invoking(() =>
@@ -50,13 +54,15 @@ public class UpdateTodoListTests : BaseTestFixture
 
         var listId = await SendAsync(new CreateTodoListCommand
         {
-            Title = "New List"
+            Title = "New List",
+            ForDeletion = Status.No
         });
 
         var command = new UpdateTodoListCommand
         {
             Id = listId,
-            Title = "Updated List Title"
+            Title = "Updated List Title",
+            ForDeletion = Status.No
         };
 
         await SendAsync(command);
@@ -65,6 +71,7 @@ public class UpdateTodoListTests : BaseTestFixture
 
         list.Should().NotBeNull();
         list!.Title.Should().Be(command.Title);
+        list!.ForDeletion.Should().Be(Status.No);
         list.LastModifiedBy.Should().NotBeNull();
         list.LastModifiedBy.Should().Be(userId);
         list.LastModified.Should().NotBeNull();

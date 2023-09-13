@@ -9,6 +9,7 @@ public class TodoItem : BaseAuditableEntity
     public string? Note { get; set; }
 
     public PriorityLevel Priority { get; set; }
+    public string? ForDeletion { get; set; }
 
     public DateTime? Reminder { get; set; }
 

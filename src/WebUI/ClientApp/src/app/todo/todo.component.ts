@@ -75,48 +75,68 @@ export class TodoComponent implements OnInit {
     const list = {
       id: 0,
       title: this.newListEditor.title,
-      items: []
+      items: [],
+      forDeletion: "No"
     } as TodoListDto;
 
-    this.listsClient.create(list as CreateTodoListCommand).subscribe(
-      result => {
-        list.id = result;
-        this.lists.push(list);
-        this.selectedList = list;
-        this.newListModalRef.hide();
-        this.newListEditor = {};
-      },
-      error => {
-        const errors = JSON.parse(error.response);
+    if (list.title !== undefined && !list.title.match("^\\s*$")) {
+      this.listsClient.create(list as CreateTodoListCommand).subscribe(
+        result => {
+          list.id = result;
+          this.lists.push(list);
+          this.selectedList = list;
+          this.newListModalRef.hide();
+          this.newListEditor = {};
+        },
+        error => {
+          const errors = JSON.parse(error.response);
 
-        if (errors && errors.Title) {
-          this.newListEditor.error = errors.Title[0];
+          if (errors && errors.Title) {
+            this.newListEditor.error = errors.Title[0];
+          }
+
+          setTimeout(() => document.getElementById('title').focus(), 250);
         }
-
-        setTimeout(() => document.getElementById('title').focus(), 250);
-      }
-    );
+      );
+    }
+    else {
+      window.alert("List title should not be empty.");
+      console.log("No title was entered");
+    }
   }
 
   showListOptionsModal(template: TemplateRef<any>) {
     this.listOptionsEditor = {
       id: this.selectedList.id,
-      title: this.selectedList.title
+      title: this.selectedList.title,
+      forDeletion: this.selectedList.forDeletion
     };
-
     this.listOptionsModalRef = this.modalService.show(template);
   }
 
-  updateListOptions() {
+  updateListOptions(toDelete?: string) {
     const list = this.listOptionsEditor as UpdateTodoListCommand;
-    this.listsClient.update(this.selectedList.id, list).subscribe(
-      () => {
-        (this.selectedList.title = this.listOptionsEditor.title),
-          this.listOptionsModalRef.hide();
-        this.listOptionsEditor = {};
-      },
-      error => console.error(error)
-    );
+    list.forDeletion = this.selectedList.forDeletion;
+    if (list.title !== undefined && !list.title.match("^\\s*$")) {
+      this.listsClient.update(this.selectedList.id, list).subscribe(
+        () => {
+          if (list.forDeletion === "No") {
+            this.selectedList.title = this.listOptionsEditor.title
+            this.listOptionsModalRef.hide();
+            this.listOptionsEditor = {};
+          }
+          else {
+            this.listOptionsModalRef.hide();
+            this.listOptionsEditor = {};
+          }
+        },
+        error => console.error(error)
+      );
+    }
+    else {
+      window.alert("List title should not be empty.");
+      console.log("No title was entered");
+    }
   }
 
   confirmDeleteList(template: TemplateRef<any>) {
@@ -125,14 +145,28 @@ export class TodoComponent implements OnInit {
   }
 
   deleteListConfirmed(): void {
-    this.listsClient.delete(this.selectedList.id).subscribe(
-      () => {
-        this.deleteListModalRef.hide();
-        this.lists = this.lists.filter(t => t.id !== this.selectedList.id);
-        this.selectedList = this.lists.length ? this.lists[0] : null;
-      },
-      error => console.error(error)
-    );
+    // Permanently delete if status == NA/null
+    if (this.selectedList.forDeletion == "NA" || this.selectedList.forDeletion == null) {
+      console.log("Found list with NA/null status. Will permanently delete...");
+      this.listsClient.delete(this.selectedList.id).subscribe(
+        () => {
+          this.refreshList();
+        },
+        error => console.error(error)
+      );
+    }
+    else {
+      this.selectedList.forDeletion = "Yes";
+      this.updateListOptions(this.selectedList.forDeletion);
+      this.refreshList();
+      console.log("ToDoList successfully marked for deletion.");
+    }
+  }
+
+  refreshList() {
+    this.deleteListModalRef.hide();
+    this.lists = this.lists.filter(t => t.id !== this.selectedList.id);
+    this.selectedList = this.lists.length ? this.lists[0] : null;
   }
 
   // Items
@@ -148,6 +182,7 @@ export class TodoComponent implements OnInit {
 
   updateItemDetails(): void {
     const item = new UpdateTodoItemDetailCommand(this.itemDetailsFormGroup.value);
+    item.forDeletion = this.selectedItem.forDeletion;
     this.itemsClient.updateItemDetails(this.selectedItem.id, item).subscribe(
       () => {
         if (this.selectedItem.listId !== item.listId) {
@@ -163,6 +198,8 @@ export class TodoComponent implements OnInit {
 
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
+        this.selectedItem.forDeletion = item.forDeletion;
+        
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
       },
@@ -176,7 +213,9 @@ export class TodoComponent implements OnInit {
       listId: this.selectedList.id,
       priority: this.priorityLevels[0].value,
       title: '',
-      done: false
+      done: false,
+      note: '',
+      forDeletion: "No"
     } as TodoItemDto;
 
     this.selectedList.items.push(item);
@@ -246,14 +285,26 @@ export class TodoComponent implements OnInit {
       const itemIndex = this.selectedList.items.indexOf(this.selectedItem);
       this.selectedList.items.splice(itemIndex, 1);
     } else {
-      this.itemsClient.delete(item.id).subscribe(
-        () =>
-        (this.selectedList.items = this.selectedList.items.filter(
-          t => t.id !== item.id
-        )),
-        error => console.error(error)
-      );
+      if (item.forDeletion == "NA" || item.forDeletion == null) {
+        console.log("Found item with NA/null status. Will permanently delete...");
+        this.itemsClient.delete(item.id).subscribe(
+          () => this.refreshItems(item),
+          error => console.error(error)
+        );
+      }
+      else {
+        item.forDeletion = "Yes";
+        this.updateItem(item);
+        this.refreshItems(item);
+        console.log("TodoItem successfully marked for deletion.");
+      }
     }
+  }
+
+  refreshItems(item: TodoItemDto) {
+    this.selectedList.items = this.selectedList.items.filter(
+      t => t.id !== item.id
+    )
   }
 
   stopDeleteCountDown() {
