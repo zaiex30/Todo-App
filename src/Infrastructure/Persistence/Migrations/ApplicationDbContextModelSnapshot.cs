@@ -100,6 +100,69 @@ namespace Todo_App.Infrastructure.Persistence.Migrations
                     b.ToTable("TodoLists");
                 });
 
+            modelBuilder.Entity("Todo_App.Domain.Entities.TodoTags", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                b.Property<DateTime>("Created")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<DateTime?>("LastModified")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("LastModifiedBy")
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<string>("TagName")
+                    .IsRequired()
+                    .HasMaxLength(200)
+                    .HasColumnType("nvarchar(200)");
+
+                b.HasKey("Id");
+
+                b.ToTable("TodoTags");
+            });
+
+            modelBuilder.Entity("Todo_App.Domain.Entities.TodoItemTag", b =>
+            {
+                b.Property<int>("Id")
+                    .ValueGeneratedOnAdd()
+                    .HasColumnType("int");
+
+                SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                b.Property<DateTime>("Created")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("CreatedBy")
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<DateTime?>("LastModified")
+                    .HasColumnType("datetime2");
+
+                b.Property<string>("LastModifiedBy")
+                    .HasColumnType("nvarchar(max)");
+
+                b.Property<int>("TagId")
+                        .HasColumnType("int");
+
+                b.Property<int>("TodoItemTagId")
+                        .HasColumnType("int");
+
+                b.HasKey("Id");
+
+                b.HasIndex("TodoItemTagId");
+
+                b.ToTable("TodoItemTags");
+            });
+
             modelBuilder.Entity("Todo_App.Infrastructure.Identity.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")

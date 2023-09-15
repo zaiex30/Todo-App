@@ -206,6 +206,90 @@
         }
       }
     },
+    "/api/TodoItemTags": {
+      "get": {
+        "tags": [
+          "TodoItemTags"
+        ],
+        "operationId": "TodoItemTags_Get",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TodoItemTagVm"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TodoItemTags"
+        ],
+        "operationId": "TodoItemTags_AddItemTag",
+        "requestBody": {
+          "x-name": "command",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddTodoItemTagCommand"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/TodoItemTags/{id}": {
+      "delete": {
+        "tags": [
+          "TodoItemTags"
+        ],
+        "operationId": "TodoItemTags_Delete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/TodoLists": {
       "get": {
         "tags": [
@@ -509,6 +593,77 @@
           3
         ]
       },
+      "TodoItemTagVm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tagList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TodoTagsDto"
+            }
+          },
+          "todoItemTagList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TodoItemTagsDto"
+            }
+          },
+          "todoItemTag": {
+            "$ref": "#/components/schemas/TodoItemTagsDto"
+          },
+          "tagName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TodoTagsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TodoItemTagsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tagId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "todoItemTagId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AddTodoItemTagCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tagId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "todoItemTagId": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "TodosVm": {
         "type": "object",
         "additionalProperties": false,
@@ -591,6 +746,13 @@
           "note": {
             "type": "string",
             "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/TodoItemTagVm"
+            }
           }
         }
       },

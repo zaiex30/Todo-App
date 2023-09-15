@@ -5,7 +5,7 @@ import {
   TodoListsClient, TodoItemsClient,
   TodoListDto, TodoItemDto, PriorityLevelDto,
   CreateTodoListCommand, UpdateTodoListCommand,
-  CreateTodoItemCommand, UpdateTodoItemDetailCommand
+  CreateTodoItemCommand, UpdateTodoItemDetailCommand, TodoItemTagsClient, TodoTagsDto, TodoItemTagVm, AddTodoItemTagCommand
 } from '../web-api-client';
 
 @Component({
@@ -19,15 +19,24 @@ export class TodoComponent implements OnInit {
   deleteCountDown = 0;
   deleteCountDownInterval: any;
   lists: TodoListDto[];
+  allTags: TodoItemTagVm;
   priorityLevels: PriorityLevelDto[];
   selectedList: TodoListDto;
   selectedItem: TodoItemDto;
+  allItems: TodoListDto;
+  tagCountList: Array<any> = new Array<any>();
+  tagCount: any = {
+    tagId: 0,
+    tagName: "",
+    count: 0
+  }
   newListEditor: any = {};
   listOptionsEditor: any = {};
   newListModalRef: BsModalRef;
   listOptionsModalRef: BsModalRef;
   deleteListModalRef: BsModalRef;
   itemDetailsModalRef: BsModalRef;
+  editTodoItemTagModalRef: BsModalRef;
   itemDetailsFormGroup = this.fb.group({
     id: [null],
     listId: [null],
@@ -39,21 +48,31 @@ export class TodoComponent implements OnInit {
   constructor(
     private listsClient: TodoListsClient,
     private itemsClient: TodoItemsClient,
+    private tagsClient: TodoItemTagsClient,
     private modalService: BsModalService,
     private fb: FormBuilder
   ) { }
 
   ngOnInit(): void {
+    this.tagsClient.get().subscribe(
+      result => {
+        this.allTags = result;
+        console.log("Tags", this.allTags);
+      }
+    );
     this.listsClient.get().subscribe(
       result => {
         this.lists = result.lists;
         this.priorityLevels = result.priorityLevels;
         if (this.lists.length) {
           this.selectedList = this.lists[0];
+          this.setSelectedList(this.selectedList);
         }
+        console.log("List", this.lists);
       },
       error => console.error(error)
     );
+    console.log("TodoList", this.lists);
   }
 
   // Lists
@@ -69,6 +88,30 @@ export class TodoComponent implements OnInit {
   newListCancelled(): void {
     this.newListModalRef.hide();
     this.newListEditor = {};
+  }
+
+  setSelectedList(selected: TodoListDto){
+    this.selectedList = selected;
+    this.allItems = selected;
+    localStorage.setItem("AllItems", JSON.stringify(this.allItems));
+    console.log("List has been set to: ", this.allItems);
+    this.allTags.tagList.forEach(item => {
+      let tag = this.allTags.todoItemTagList.filter(x => x.tagId === item.id);
+      // console.log("tag is:", tag);
+      if(tag.length > 1)
+      {
+        // console.log("Item tag name", item.tagName);
+        // console.log("Tag count of tag name", tag.length);
+
+        this.tagCount = {
+          tagId: item.id,
+          tagName: item.tagName,
+          count: tag.length
+        }
+        this.tagCountList.push(this.tagCount);
+      }
+    });
+    console.log("Tag count list", this.tagCountList);
   }
 
   addList(): void {
@@ -138,6 +181,7 @@ export class TodoComponent implements OnInit {
   // Items
   showItemDetailsModal(template: TemplateRef<any>, item: TodoItemDto): void {
     this.selectedItem = item;
+    console.log("Selected item", this.selectedItem);
     this.itemDetailsFormGroup.patchValue(this.selectedItem);
 
     this.itemDetailsModalRef = this.modalService.show(template);
@@ -256,9 +300,63 @@ export class TodoComponent implements OnInit {
     }
   }
 
+  showTagOptionsModal(template: TemplateRef<any>, item: TodoItemDto){
+    this.selectedItem = item;
+    console.log("Add tag to: ", this.selectedItem);
+    this.editTodoItemTagModalRef = this.modalService.show(template);
+  }
+
+  addTag(tagId: any){
+    console.log("Tag id to add is", tagId);
+
+    let selectedItemTagId = this.selectedItem.tags.find(item => item.todoItemTag.tagId === tagId);
+
+    console.log("Selected Item TagId returned is", selectedItemTagId);
+
+    if(selectedItemTagId === undefined)
+    {
+      console.log("Not yet added", tagId);
+      let command =  {
+        tagId: tagId,
+        todoItemTagId: this.selectedItem.id
+      } as AddTodoItemTagCommand
+      this.tagsClient.addItemTag(command).subscribe(item => {
+        let i = item;
+      });
+    }
+    else{
+      console.log("Already added");
+    }
+    this.editTodoItemTagModalRef.hide();
+  }
+
+  removeTag(tagId: number){
+    this.tagsClient.delete(tagId).subscribe(() => {
+      console.log("Tag deleted");
+    });
+    this.editTodoItemTagModalRef.hide();
+  }
+
   stopDeleteCountDown() {
     clearInterval(this.deleteCountDownInterval);
     this.deleteCountDown = 0;
     this.deleting = false;
+  }
+
+  filterItemsBy(tagId: number) {
+    this.selectedList.items = JSON.parse(localStorage.getItem("AllItems")).items;
+    console.log("Current list is: ", this.selectedList.items);
+    if(tagId !== -1)
+    {
+      let i = this.selectedList.items.filter(x => x.tags.filter(item => {
+        if(item.todoItemTag.tagId === tagId)
+          return item;
+        else
+          return null;
+      }) !== null);
+      console.log("Tag list of item", i);
+      this.selectedList.items = this.selectedList.items.filter(x => x.id === tagId);
+      console.log("Filtered list is: ", this.selectedList.items);
+    }
   }
 }
