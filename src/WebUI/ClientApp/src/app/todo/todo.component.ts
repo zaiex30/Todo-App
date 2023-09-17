@@ -5,7 +5,7 @@ import {
   TodoListsClient, TodoItemsClient,
   TodoListDto, TodoItemDto, PriorityLevelDto,
   CreateTodoListCommand, UpdateTodoListCommand,
-  CreateTodoItemCommand, UpdateTodoItemDetailCommand
+  CreateTodoItemCommand, UpdateTodoItemDetailCommand, TodoItemTagsClient, TodoTagsDto, TodoItemTagVm, AddTodoItemTagCommand
 } from '../web-api-client';
 
 @Component({
@@ -19,15 +19,24 @@ export class TodoComponent implements OnInit {
   deleteCountDown = 0;
   deleteCountDownInterval: any;
   lists: TodoListDto[];
+  allTags: TodoItemTagVm;
   priorityLevels: PriorityLevelDto[];
   selectedList: TodoListDto;
   selectedItem: TodoItemDto;
+  allItems: TodoListDto;
+  tagCountList: Array<any> = new Array<any>();
+  tagCount: any = {
+    tagId: 0,
+    tagName: "",
+    count: 0
+  }
   newListEditor: any = {};
   listOptionsEditor: any = {};
   newListModalRef: BsModalRef;
   listOptionsModalRef: BsModalRef;
   deleteListModalRef: BsModalRef;
   itemDetailsModalRef: BsModalRef;
+  editTodoItemTagModalRef: BsModalRef;
   itemDetailsFormGroup = this.fb.group({
     id: [null],
     listId: [null],
@@ -39,17 +48,25 @@ export class TodoComponent implements OnInit {
   constructor(
     private listsClient: TodoListsClient,
     private itemsClient: TodoItemsClient,
+    private tagsClient: TodoItemTagsClient,
     private modalService: BsModalService,
     private fb: FormBuilder
   ) { }
 
   ngOnInit(): void {
+    this.tagsClient.get().subscribe(
+      result => {
+        this.allTags = result;
+        console.log("Tags", this.allTags);
+      }
+    );
     this.listsClient.get().subscribe(
       result => {
         this.lists = result.lists;
         this.priorityLevels = result.priorityLevels;
         if (this.lists.length) {
           this.selectedList = this.lists[0];
+          this.setSelectedList(this.selectedList);
         }
       },
       error => console.error(error)
@@ -71,6 +88,25 @@ export class TodoComponent implements OnInit {
     this.newListEditor = {};
   }
 
+  setSelectedList(selected: TodoListDto){
+    this.selectedList = selected;
+    localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
+    console.log("List has been set to: ", this.selectedList);
+    this.allTags.tagList.forEach(item => {
+      let tag = this.allTags.todoItemTagList.filter(x => x.tagId === item.id);
+      if(tag.length > 2)
+      {
+        this.tagCountList = [];
+        this.tagCount = {
+          tagId: item.id,
+          tagName: item.tagName,
+          count: tag.length
+        }
+        this.tagCountList.push(this.tagCount);
+      }
+    });
+  }
+
   addList(): void {
     const list = {
       id: 0,
@@ -83,6 +119,7 @@ export class TodoComponent implements OnInit {
         list.id = result;
         this.lists.push(list);
         this.selectedList = list;
+        localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
         this.newListModalRef.hide();
         this.newListEditor = {};
       },
@@ -130,6 +167,7 @@ export class TodoComponent implements OnInit {
         this.deleteListModalRef.hide();
         this.lists = this.lists.filter(t => t.id !== this.selectedList.id);
         this.selectedList = this.lists.length ? this.lists[0] : null;
+        localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
       },
       error => console.error(error)
     );
@@ -138,6 +176,7 @@ export class TodoComponent implements OnInit {
   // Items
   showItemDetailsModal(template: TemplateRef<any>, item: TodoItemDto): void {
     this.selectedItem = item;
+    console.log("Selected item", this.selectedItem);
     this.itemDetailsFormGroup.patchValue(this.selectedItem);
 
     this.itemDetailsModalRef = this.modalService.show(template);
@@ -163,6 +202,7 @@ export class TodoComponent implements OnInit {
 
         this.selectedItem.priority = item.priority;
         this.selectedItem.note = item.note;
+        localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
         this.itemDetailsModalRef.hide();
         this.itemDetailsFormGroup.reset();
       },
@@ -180,6 +220,7 @@ export class TodoComponent implements OnInit {
     } as TodoItemDto;
 
     this.selectedList.items.push(item);
+    localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
     const index = this.selectedList.items.length - 1;
     this.editItem(item, 'itemTitle' + index);
   }
@@ -205,12 +246,16 @@ export class TodoComponent implements OnInit {
         .subscribe(
           result => {
             item.id = result;
+            localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
           },
           error => console.error(error)
         );
     } else {
       this.itemsClient.update(item.id, item).subscribe(
-        () => console.log('Update succeeded.'),
+        () => {
+          localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
+          console.log('Update succeeded.')
+        },
         error => console.error(error)
       );
     }
@@ -247,18 +292,92 @@ export class TodoComponent implements OnInit {
       this.selectedList.items.splice(itemIndex, 1);
     } else {
       this.itemsClient.delete(item.id).subscribe(
-        () =>
-        (this.selectedList.items = this.selectedList.items.filter(
-          t => t.id !== item.id
-        )),
+        () => {
+          this.selectedList.items = this.selectedList.items.filter(t => t.id !== item.id);
+          localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
+        },
         error => console.error(error)
       );
     }
+  }
+
+  showTagOptionsModal(template: TemplateRef<any>, item: TodoItemDto){
+    this.selectedItem = item;
+    console.log("Add tag to: ", this.selectedItem);
+    this.editTodoItemTagModalRef = this.modalService.show(template);
+  }
+
+  addTag(tagId: any){
+    let selectedItemTagId: TodoItemTagVm = new TodoItemTagVm;
+
+    if(this.selectedItem.tags !== undefined){
+      selectedItemTagId = this.selectedItem.tags.find(item => item.todoItemTag.tagId === tagId);
+    }
+
+    if(selectedItemTagId === undefined)
+    {
+      console.log("Tag is not yet added", tagId);
+      let command =  {
+        tagId: tagId,
+        todoItemTagId: this.selectedItem.id
+      } as AddTodoItemTagCommand
+      this.tagsClient.addItemTag(command).subscribe(item => {
+        this.selectedItem.tags.push(item);
+      });
+      console.log("Tag has been added.");
+      this.editTodoItemTagModalRef.hide();
+    }
+    else{
+      window.alert("Tag is already added.");
+      console.log("Already added");
+    }
+  }
+
+  removeTag(todoItemTagId: number, tagId: number){
+    this.tagsClient.delete(todoItemTagId).subscribe(() => {
+      if(this.selectedItem.tags.length === 1)
+      {
+        this.selectedItem.tags.shift();
+      }
+      else{
+        this.selectedItem.tags = this.selectedItem.tags.filter(i => i.todoItemTag.tagId !== tagId);
+      }
+    });
+    this.editTodoItemTagModalRef.hide();
   }
 
   stopDeleteCountDown() {
     clearInterval(this.deleteCountDownInterval);
     this.deleteCountDown = 0;
     this.deleting = false;
+  }
+
+  filterItemsBy(tagId: number) {
+    this.selectedList.items = JSON.parse(localStorage.getItem("AllItems")).items;
+    console.log("Current list of TodoItems is: ", this.selectedList.items);
+    if(tagId !== -1)
+    {
+      let filteredItems = [];
+
+      this.selectedList.items.forEach(item => {
+        let todoItemTagIds = item.tags.filter(x => x.todoItemTag.tagId === tagId).map(id => id.todoItemTag.todoItemTagId);
+
+        todoItemTagIds.forEach(id => {
+          let item = this.selectedList.items.filter(x => x.id === id);
+          if (item !== null) {
+            filteredItems.push(item);
+          }
+        });
+      });
+
+      this.selectedList.items = [];
+
+      for (let i = 0; i < filteredItems.length; i++) {
+        let item = filteredItems[i][0] as TodoItemDto;
+        this.selectedList.items.push(item);
+      }
+
+      console.log("TodoItems filtered: ", this.selectedList.items);
+    }
   }
 }

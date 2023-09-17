@@ -17,7 +17,7 @@
       </div>
       <ul class="list-group">
         <li *ngFor="let list of lists; index as i" class="list-group-item"
-          [ngClass]="{ 'active': selectedList == list }" (click)="selectedList = list">
+           [ngClass]="{ 'active': selectedList == list }" (click)="setSelectedList(list)"><!--(click)="selectedList = list">-->
           <div class="clearfix">
             <div class="float-start">
               {{ list.title }}
@@ -36,6 +36,19 @@
           (click)="showListOptionsModal(listOptionsModalTemplate)">
           <i class="bi bi-three-dots-vertical"></i>
         </button>
+        <div class="dropdown float-end">
+          <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-mdb-toggle="dropdown" aria-expanded="false">
+            Filter by: <i class="bi bi-funnel-fill"></i>
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            <li><a class="dropdown-item"><i class="bi bi-tags-fill"></i> Tags<i class="bi bi-caret-right-fill float-end"></i></a>
+              <ul class="dropdown-menu dropdown-submenu">
+                <li (click)="filterItemsBy(-1)"><a class="dropdown-item">All</a></li>
+                <li *ngFor="let tag of allTags.tagList" (click)="filterItemsBy(tag.id)"><a class="dropdown-item">{{tag.tagName}}</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
       </div>
       <ul id="todo-items" class="list-group mb-2">
         <li class="list-group-item" *ngFor="let item of selectedList.items; index as i">
@@ -45,11 +58,18 @@
             </div>
             <div class="flex-fill">
               <input id="{{ 'itemTitle' + i }}" *ngIf="item == selectedItem" type="text"
-                class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
-                (blur)="updateItem(item)" autofocus="autofocus" />
+                     class="form-control item-input-control" [(ngModel)]="item.title" (keyup.enter)="updateItem(item, true)"
+                     (blur)="updateItem(item)" autofocus="autofocus" />
               <div class="todo-item-title" *ngIf="item != selectedItem" [ngClass]="{ 'done-todo': item.done }"
-                (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
+                   (click)="editItem(item, 'itemTitle' + i)" class="form-control item-input-control">
                 <span>{{ item.title }}</span>
+              </div>
+              <div class="flex-fill">
+                <h6 id="listOfTags" class="float-start"><i class="bi bi-tags-fill"></i>Tags
+                  <span class="text-warning-emphasis" *ngIf="item | checkIfUndefined">No tags assigned.</span>
+                  <span *ngFor="let tag of item.tags" class="badge bg-secondary">{{tag.tagName}}</span>
+                </h6>
+                <button type="button" class="btn btn-primary float-end" (click)="showTagOptionsModal(todoItemTagModalTemplate, item)"><i class="bi bi-tag"></i>Edit tag\s</button>
               </div>
             </div>
             <div class="todo-item-commands">
@@ -97,6 +117,44 @@
       <div class="float-end">
         <button class="btn btn-default" (click)="listOptionsModalRef.hide()">Cancel</button>
         <button class="btn btn-primary" (click)="updateListOptions()">Update</button>
+      </div>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #todoItemTagModalTemplate>
+  <div class="modal-header">
+    <h4 class="modal-title pull-left">Edit Tags</h4>
+    <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="editTodoItemTagModalRef.hide()">
+      <span aria-hidden="true" class="visually-hidden">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <h6 class="modal-title pull-left text-danger-emphasis"><i>Add tags by clicking one of the buttons from the Available or Most used tags.</i></h6>
+    <br>
+    <div class="flex-fill">
+      <span>Most used tags: </span>
+      <button class="btn btn-outline-primary" *ngFor="let mostUsedTag of tagCountList" (click)="addTag(mostUsedTag.tagId)"><i class="bi bi-plus-circle"></i>&nbsp;{{mostUsedTag.tagName}}
+        <span class="badge text-bg-danger">{{mostUsedTag.count}}</span>
+      </button>
+    </div>
+    <br>
+    <div class="flex-fill">
+      <span>Available tags: </span>
+      <button class="btn btn-outline-secondary" *ngFor="let existingTag of allTags.tagList" (click)="addTag(existingTag.id)"><i class="bi bi-plus-circle"></i>&nbsp;{{existingTag.tagName}}</button>
+    </div>
+    <br>
+    <div class="flex-fill">
+      <span>Assigned tags: </span>
+        <button *ngFor="let currentTag of selectedItem.tags;" class="btn btn-info" (click)="removeTag(currentTag.todoItemTag.id, currentTag.todoItemTag.tagId)">
+          <i class="bi bi-tag"></i>&nbsp;{{currentTag.tagName}}</button>
+        <span class="text-warning-emphasis" *ngIf="selectedItem | checkIfUndefined">No tags assigned.</span>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <div class="clearfix">
+      <div class="float-end">
+        <button class="btn btn-default" (click)="editTodoItemTagModalRef.hide()">Cancel</button>
       </div>
     </div>
   </div>

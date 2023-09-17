@@ -87,5 +87,60 @@ public class ApplicationDbContextInitialiser
 
             await _context.SaveChangesAsync();
         }
+
+        if (!_context.TodoTags.Any())
+        {
+            _context.TodoTags.Add(new TodoTags
+            {
+                TagName = "Personal"
+            });
+
+            _context.TodoTags.Add(new TodoTags
+            {
+                TagName = "Work"
+            });
+
+            _context.TodoTags.Add(new TodoTags
+            {
+                TagName = "School"
+            });
+
+            await _context.SaveChangesAsync();
+        }
+
+        if (!_context.TodoItemTags.Any())
+        {
+            _context.TodoItemTags.Add(new TodoItemTag
+            {
+                TagId = 1,
+                TodoItemTagId = 1,
+            });
+
+            _context.TodoItemTags.Add(new TodoItemTag
+            {
+                TagId = 3,
+                TodoItemTagId = 1,
+            });
+
+            _context.TodoItemTags.Add(new TodoItemTag
+            {
+                TagId = 3,
+                TodoItemTagId = 2,
+            });
+
+            _context.TodoItemTags.Add(new TodoItemTag
+            {
+                TagId = 1,
+                TodoItemTagId = 3,
+            });
+
+            _context.TodoItemTags.Add(new TodoItemTag
+            {
+                TagId = 2,
+                TodoItemTagId = 3,
+            });
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
