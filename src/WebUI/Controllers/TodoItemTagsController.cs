@@ -15,7 +15,7 @@ public class TodoItemTagsController : ApiControllerBase
     }
 
     [HttpPost]
-    public async Task<int> AddItemTag(AddTodoItemTagCommand command)
+    public async Task<TodoItemTagVm> AddItemTag(AddTodoItemTagCommand command)
     {
         return await Mediator.Send(command);
     }

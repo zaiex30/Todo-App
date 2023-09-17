@@ -248,8 +248,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "integer",
-                  "format": "int32"
+                  "$ref": "#/components/schemas/TodoItemTagVm"
                 }
               }
             }

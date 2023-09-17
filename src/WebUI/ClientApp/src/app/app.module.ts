@@ -17,10 +17,12 @@ import { TokenComponent } from './token/token.component';
 import { ApiAuthorizationModule } from 'src/api-authorization/api-authorization.module';
 import { AuthorizeInterceptor } from 'src/api-authorization/authorize.interceptor';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { CheckIfUndefinedPipe } from './pipes/todoItem.pipe';
 
 
 @NgModule({
   declarations: [
+    CheckIfUndefinedPipe,
     AppComponent,
     NavMenuComponent,
     HomeComponent,

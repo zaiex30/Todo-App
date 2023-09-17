@@ -308,7 +308,7 @@ export class TodoItemsClient implements ITodoItemsClient {
 
 export interface ITodoItemTagsClient {
     get(): Observable<TodoItemTagVm>;
-    addItemTag(command: AddTodoItemTagCommand): Observable<number>;
+    addItemTag(command: AddTodoItemTagCommand): Observable<TodoItemTagVm>;
     delete(id: number): Observable<FileResponse>;
 }
 
@@ -373,7 +373,7 @@ export class TodoItemTagsClient implements ITodoItemTagsClient {
         return _observableOf(null as any);
     }
 
-    addItemTag(command: AddTodoItemTagCommand): Observable<number> {
+    addItemTag(command: AddTodoItemTagCommand): Observable<TodoItemTagVm> {
         let url_ = this.baseUrl + "/api/TodoItemTags";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -396,14 +396,14 @@ export class TodoItemTagsClient implements ITodoItemTagsClient {
                 try {
                     return this.processAddItemTag(response_ as any);
                 } catch (e) {
-                    return _observableThrow(e) as any as Observable<number>;
+                    return _observableThrow(e) as any as Observable<TodoItemTagVm>;
                 }
             } else
-                return _observableThrow(response_) as any as Observable<number>;
+                return _observableThrow(response_) as any as Observable<TodoItemTagVm>;
         }));
     }
 
-    protected processAddItemTag(response: HttpResponseBase): Observable<number> {
+    protected processAddItemTag(response: HttpResponseBase): Observable<TodoItemTagVm> {
         const status = response.status;
         const responseBlob =
             response instanceof HttpResponse ? response.body :
@@ -414,8 +414,7 @@ export class TodoItemTagsClient implements ITodoItemTagsClient {
             return blobToText(responseBlob).pipe(_observableMergeMap((_responseText: string) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-                result200 = resultData200 !== undefined ? resultData200 : <any>null;
-    
+            result200 = TodoItemTagVm.fromJS(resultData200);
             return _observableOf(result200);
             }));
         } else if (status !== 200 && status !== 204) {

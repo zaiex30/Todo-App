@@ -17,7 +17,7 @@
       </div>
       <ul class="list-group">
         <li *ngFor="let list of lists; index as i" class="list-group-item"
-           [ngClass]="{ 'active': selectedList == list }" (click)="setSelectedList(list)"><!-- (click)="selectedList = list" -->
+           [ngClass]="{ 'active': selectedList == list }" (click)="setSelectedList(list)"><!--(click)="selectedList = list">-->
           <div class="clearfix">
             <div class="float-start">
               {{ list.title }}
@@ -65,7 +65,10 @@
                 <span>{{ item.title }}</span>
               </div>
               <div class="flex-fill">
-                <h6 id="listOfTags" class="float-start"><i class="bi bi-tags-fill"></i>Tags <span *ngFor="let tag of item.tags" class="badge bg-secondary">{{tag.tagName}}</span></h6>
+                <h6 id="listOfTags" class="float-start"><i class="bi bi-tags-fill"></i>Tags
+                  <span class="text-warning-emphasis" *ngIf="item | checkIfUndefined">No tags assigned.</span>
+                  <span *ngFor="let tag of item.tags" class="badge bg-secondary">{{tag.tagName}}</span>
+                </h6>
                 <button type="button" class="btn btn-primary float-end" (click)="showTagOptionsModal(todoItemTagModalTemplate, item)"><i class="bi bi-tag"></i>Edit tag\s</button>
               </div>
             </div>
@@ -121,13 +124,13 @@
 
 <ng-template #todoItemTagModalTemplate>
   <div class="modal-header">
-    <h4 class="modal-title pull-left">Add Tags</h4>
+    <h4 class="modal-title pull-left">Edit Tags</h4>
     <button type="button" class="close btn-close pull-right" aria-label="Close" (click)="editTodoItemTagModalRef.hide()">
       <span aria-hidden="true" class="visually-hidden">&times;</span>
     </button>
   </div>
   <div class="modal-body">
-    <h6 class="modal-title pull-left">Add Tags to <i>{{selectedItem.title}}</i></h6>
+    <h6 class="modal-title pull-left text-danger-emphasis"><i>Add tags by clicking one of the buttons from the Available or Most used tags.</i></h6>
     <br>
     <div class="flex-fill">
       <span>Most used tags: </span>
@@ -143,7 +146,9 @@
     <br>
     <div class="flex-fill">
       <span>Assigned tags: </span>
-        <button *ngFor="let currentTag of selectedItem.tags;" class="btn btn-info" (click)="removeTag(currentTag.todoItemTag.id)"><i class="bi bi-tag"></i>&nbsp;{{currentTag.tagName}}</button>
+        <button *ngFor="let currentTag of selectedItem.tags;" class="btn btn-info" (click)="removeTag(currentTag.todoItemTag.id, currentTag.todoItemTag.tagId)">
+          <i class="bi bi-tag"></i>&nbsp;{{currentTag.tagName}}</button>
+        <span class="text-warning-emphasis" *ngIf="selectedItem | checkIfUndefined">No tags assigned.</span>
     </div>
   </div>
   <div class="modal-footer">
