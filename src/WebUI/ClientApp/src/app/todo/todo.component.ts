@@ -92,11 +92,11 @@ export class TodoComponent implements OnInit {
     this.selectedList = selected;
     localStorage.setItem("AllItems", JSON.stringify(this.selectedList));
     console.log("List has been set to: ", this.selectedList);
+    this.tagCountList = [];
     this.allTags.tagList.forEach(item => {
       let tag = this.allTags.todoItemTagList.filter(x => x.tagId === item.id);
       if(tag.length > 2)
       {
-        this.tagCountList = [];
         this.tagCount = {
           tagId: item.id,
           tagName: item.tagName,

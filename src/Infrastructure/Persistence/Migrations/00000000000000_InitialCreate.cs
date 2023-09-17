@@ -416,13 +416,13 @@ namespace Todo_App.Infrastructure.Persistence.Migrations
                 name: "PersistedGrants");
 
             migrationBuilder.DropTable(
+                name: "TodoItems");
+
+            migrationBuilder.DropTable(
                 name: "TodoItemTags");
 
             migrationBuilder.DropTable(
                 name: "TodoTags");
-
-            migrationBuilder.DropTable(
-                name: "TodoItems");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
